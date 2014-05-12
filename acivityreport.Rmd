@@ -44,8 +44,11 @@ print("verify data loaded")
 2. Process/transform the data (if necessary) into a format suitable for your analysis
 ```{r}
 echo = TRUE
-print("coding in process")
-print("date....")
+print("create dateTime variable coding in process")
+#DRAFT Create datetime column by pasting date and time and converting it to date format
+    dateTime <- paste(activityData[,2], data[,3])
+    dateTime <- as.POSIXct(dateTime, format="%Y-%m-%d %M") #dont think this will work would need to compute hours
+    data <- cbind(activityData, dateTime)
 ```
 
  
