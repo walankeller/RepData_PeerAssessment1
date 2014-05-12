@@ -1,24 +1,29 @@
 #Download and load data for Reproducible Research Class Project #1
-#Activity Data 
+#Activity Data
+#setwd("C://Users//akeller.HARDEN//Documents//GitHub//RepData_PeerAssessment2")
 internetSource <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
-zipfilename = "activity.zip"
-filename = "activity.csv"
-fullfilename <- file.path(getwd(), zipfilename)
-if (file.exists(fullfilename)){
-  print("activity zip file already exists locally")
+#zipfilename = "activity.zip"
+fullzipfilename <- file.path(getwd(), "activity.zip")
+fullfilename <- file.path(getwd(), "activity.csv")
+
+#fullfilename <- file.path(getwd(), zipfilename)
+
+if (file.exists(fullzipfilename)){
+  print("activity zip file previously downloade and exists locally.")
 }else{
   print("file not found locally, so dowload from website")
   download.file(internetSource 
-                , destfile=zipfilename)
+                , destfile=fullzipfilename)
 }
 
 #unzip contents to get single .csv file
-unzip(zipfilename)
+unzip(fullzipfilename)
 
-#print("File not found, downloading from website...")
 if(exists("activitydata")){
-  print("activity data already loaded into R")
+  print("activity data was previously loaded into R.")
 }else{
   print("load activitydata")
-  activitydata <- read.csv(filename, header = TRUE)
+  activitydata <- read.csv(fullfilename, header = TRUE)
 }
+
+
