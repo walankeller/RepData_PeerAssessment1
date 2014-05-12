@@ -1,4 +1,4 @@
-Personal Activity Monitorring Report
+Personal Activity Monitorring Report, single device from October-November 2012
 ========================================================
 
 This is a Knitted report for the Reproducible Research class Homework Assignment #1. It represents analysis of Peronal Activity
