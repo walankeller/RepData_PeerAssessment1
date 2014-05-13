@@ -19,21 +19,22 @@ if (file.exists(fullzipfilename)){
 #unzip contents to get single .csv file
 unzip(fullzipfilename)
 
-if(exists("activitydata")){
+if(exists("activity")){
   print("activity data was previously loaded into R.")
 }else{
-  print("load activitydata")
-  activitydata <- read.csv(fullfilename, header = TRUE)
+  print("load activity")
+  activity <- read.csv(fullfilename, header = TRUE)
 }
 
 print("add a datimetime variable as a POSIXt class which combines date and hours/minutes from interval")
-activitydata$datetime <- strptime(
-  paste(activitydata$date
-        ,sprintf("%04d",activitydata$interval)) #force interval to 4 digits
+activity$datetime <- strptime(
+  paste(activity$date
+        ,sprintf("%04d",activity$interval)) #force interval to 4 digits
   ,format="%Y-%m-%d %H%M")
 
+#Daily Average (53 days => missing 8 days)
+plot(aggregate(steps ~ date, activity, mean))
+#hist(aggregate(steps ~ date, activity, mean))
 
-
-
-# "activitydata$new") <- activitydata(, date)
+# "activity$new") <- activity(, date)
 # hpc_filtered <- hpc[as.character(hpc$date) %in% c('2/2/2007','1/2/2007'),]
