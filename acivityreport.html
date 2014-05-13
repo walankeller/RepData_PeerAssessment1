@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="x-ua-compatible" content="IE=9" >
 
-<title>Activity Monitorring Report</title>
+<title>Personal Activity Monitorring Report, single device from October-November 2012</title>
 
 <style type="text/css">
 body, td {
@@ -179,73 +179,49 @@ hljs.initHighlightingOnLoad();
 </head>
 
 <body>
-<h1>Activity Monitorring Report</h1>
+<h1>Personal Activity Monitorring Report, single device from October-November 2012</h1>
 
-<p>This is a Knitted report for the Reproducible Research class Homework Assignment #1.</p>
+<p>This is a Knitted report for the Reproducible Research class Homework Assignment #1. It represents analysis of Peronal Activity
+of the number of steps collected over five minute intervals from a single device/person over a two month period from October through
+November of 2012.</p>
 
 <h1>Loading and preprocessing the data</h1>
 
-<p>Show any code that is needed to
- 1.
-Load the data (i.e.  read.csv() )</p>
+<p>Show any code that is needed to</p>
+
+<ol>
+<li>Load the data (i.e.  read.csv() )</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
-# Download and load data for Reproducible Research Class Project #1 Activity
-# Data
+# Download the Activity data if it doesn&#39;t already exist
 # setwd(&#39;C://Users//akeller.HARDEN//Documents//GitHub//RepData_PeerAssessment2&#39;)
 internetSource &lt;- &quot;https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip&quot;
-# zipfilename = &#39;activity.zip&#39;
 fullzipfilename &lt;- file.path(getwd(), &quot;activity.zip&quot;)
 fullfilename &lt;- file.path(getwd(), &quot;activity.csv&quot;)
-
-# fullfilename &lt;- file.path(getwd(), zipfilename)
-
 if (file.exists(fullzipfilename)) {
-    print(&quot;activity zip file previously downloade and exists locally.&quot;)
+    # print(&#39;data previously downloaded and exists locally&#39;)
 } else {
-    print(&quot;file not found locally, so dowload from website&quot;)
+    # print(&#39;file not found locally, so dowload from website&#39;)
     download.file(internetSource, destfile = fullzipfilename)
 }
 </code></pre>
 
-<pre><code>## [1] &quot;activity zip file previously downloade and exists locally.&quot;
+<pre><code>## NULL
 </code></pre>
 
 <pre><code class="r">
 # unzip contents to get single .csv file
 unzip(fullzipfilename)
 
+# load data into R
 if (exists(&quot;activitydata&quot;)) {
-    print(&quot;activity data was previously loaded into R.&quot;)
+    # print(&#39;activity data was previously loaded into R.&#39;)
 } else {
-    print(&quot;load activitydata&quot;)
+    # print(&#39;load activitydata&#39;)
     activitydata &lt;- read.csv(fullfilename, header = TRUE)
 }
-</code></pre>
-
-<pre><code>## [1] &quot;load activitydata&quot;
-</code></pre>
-
-<pre><code class="r">print(&quot;verify data loaded&quot;)
-</code></pre>
-
-<pre><code>## [1] &quot;verify data loaded&quot;
-</code></pre>
-
-<pre><code class="r">summary(activitydata)
-</code></pre>
-
-<pre><code>##      steps               date          interval   
-##  Min.   :  0.0   2012-10-01:  288   Min.   :   0  
-##  1st Qu.:  0.0   2012-10-02:  288   1st Qu.: 589  
-##  Median :  0.0   2012-10-03:  288   Median :1178  
-##  Mean   : 37.4   2012-10-04:  288   Mean   :1178  
-##  3rd Qu.: 12.0   2012-10-05:  288   3rd Qu.:1766  
-##  Max.   :806.0   2012-10-06:  288   Max.   :2355  
-##  NA&#39;s   :2304    (Other)   :15840
-</code></pre>
-
-<pre><code class="r">str(activitydata)
+str(activitydata)
 </code></pre>
 
 <pre><code>## &#39;data.frame&#39;:    17568 obs. of  3 variables:
@@ -254,21 +230,32 @@ if (exists(&quot;activitydata&quot;)) {
 ##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
 </code></pre>
 
-<p>2.
-Process/transform the data (if necessary) into a format suitable for your analysis</p>
+<ol>
+<li>Process/transform the data (if necessary) into a format suitable for your analysis</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
-print(&quot;coding in process&quot;)
+print(&quot;add a datimetime variable as a POSIXt class which combines date and hours/minutes from interval&quot;)
 </code></pre>
 
-<pre><code>## [1] &quot;coding in process&quot;
+<pre><code>## [1] &quot;add a datimetime variable as a POSIXt class which combines date and hours/minutes from interval&quot;
+</code></pre>
+
+<pre><code class="r">activitydata$datetime &lt;- strptime(paste(activitydata$date, sprintf(&quot;%04d&quot;, activitydata$interval))  #force interval to 4 digits
+, format = &quot;%Y-%m-%d %H%M&quot;)
+print(&quot;create a daytype variable and default to weekday. This is needed later and we will update the weekend values at that point&quot;)
+</code></pre>
+
+<pre><code>## [1] &quot;create a daytype variable and default to weekday. This is needed later and we will update the weekend values at that point&quot;
+</code></pre>
+
+<pre><code class="r">activitydata$daytype &lt;- &quot;weekday&quot;
 </code></pre>
 
 <h1>What is mean total number of steps taken per day?</h1>
 
 <p>For this part of the assignment, you can ignore the missing values in the dataset.
- 1.
-Make a histogram of the total number of steps taken each day</p>
+1. Make a histogram of the total number of steps taken each day</p>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -277,8 +264,9 @@ print(&quot;coding in process&quot;)
 <pre><code>## [1] &quot;coding in process&quot;
 </code></pre>
 
-<p>2.
-Calculate and report the mean and median total number of steps taken per day</p>
+<ol>
+<li>Calculate and report the mean and median total number of steps taken per day</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -289,7 +277,9 @@ print(&quot;coding in process&quot;)
 
 <h1>What is the average daily activity pattern?</h1>
 
-<p>1.Make a time series plot (i.e.  type = &ldquo;l&rdquo; ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)</p>
+<ol>
+<li>Make a time series plot (i.e.  type = &ldquo;l&rdquo; ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -298,7 +288,9 @@ print(&quot;coding in process&quot;)
 <pre><code>## [1] &quot;coding in process&quot;
 </code></pre>
 
-<p>2.Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?</p>
+<ol>
+<li>Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -310,7 +302,7 @@ print(&quot;coding in process&quot;)
 <h1>Imputing missing values</h1>
 
 <p>Note that there are a number of days/intervals where there are missing values (coded as  NA ). The presence of missing days may introduce bias into some calculations or summaries of the data.
- 1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with  NA s)</p>
+1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with  NA s)</p>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -319,7 +311,9 @@ print(&quot;coding in process&quot;)
 <pre><code>## [1] &quot;coding in process&quot;
 </code></pre>
 
-<p>2.Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.</p>
+<ol>
+<li>Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -328,7 +322,9 @@ print(&quot;coding in process&quot;)
 <pre><code>## [1] &quot;coding in process&quot;
 </code></pre>
 
-<p>3.Create a new dataset that is equal to the original dataset but with the missing data filled in.</p>
+<ol>
+<li>Create a new dataset that is equal to the original dataset but with the missing data filled in.</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -337,7 +333,9 @@ print(&quot;coding in process&quot;)
 <pre><code>## [1] &quot;coding in process&quot;
 </code></pre>
 
-<p>4.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?</p>
+<ol>
+<li>Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -349,7 +347,7 @@ print(&quot;coding in process&quot;)
 <h1>Are there differences in activity patterns between weekdays and weekends?</h1>
 
 <p>For this part the  weekdays()  function may be of some help here. Use the dataset with the filled-in missing values for this part.
- 1.Create a new factor variable in the dataset with two levels &ndash; &ldquo;weekday&rdquo; and &ldquo;weekend&rdquo; indicating whether a given date is a weekday or weekend day.</p>
+1. Create a new factor variable in the dataset with two levels &ndash; &ldquo;weekday&rdquo; and &ldquo;weekend&rdquo; indicating whether a given date is a weekday or weekend day.</p>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -358,7 +356,9 @@ print(&quot;coding in process&quot;)
 <pre><code>## [1] &quot;coding in process&quot;
 </code></pre>
 
-<p>2.Make a panel plot containing a time series plot (i.e.  type = &ldquo;l&rdquo; ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:</p>
+<ol>
+<li>Make a panel plot containing a time series plot (i.e.  type = &ldquo;l&rdquo; ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:</li>
+</ol>
 
 <pre><code class="r">echo = TRUE
 print(&quot;coding in process&quot;)
@@ -366,29 +366,6 @@ print(&quot;coding in process&quot;)
 
 <pre><code>## [1] &quot;coding in process&quot;
 </code></pre>
-
-<h1>other examples&hellip;delete me todo</h1>
-
-<pre><code class="r">echo = TRUE
-summary(cars)
-</code></pre>
-
-<pre><code>##      speed           dist    
-##  Min.   : 4.0   Min.   :  2  
-##  1st Qu.:12.0   1st Qu.: 26  
-##  Median :15.0   Median : 36  
-##  Mean   :15.4   Mean   : 43  
-##  3rd Qu.:19.0   3rd Qu.: 56  
-##  Max.   :25.0   Max.   :120
-</code></pre>
-
-<p>You can also embed plots, for example:</p>
-
-<pre><code class="r">echo = TRUE
-plot(cars)
-</code></pre>
-
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfgAAAGwCAMAAABy/YdMAAAAbFBMVEX9/v0AAAAAADkAAGUAOTkAOWUAOY8AZrU5AAA5ADk5AGU5OY85j9plAABlADllAGVlOQBlZjlltf2POQCPOTmPOWWPjzmPtY+P2/21ZgC1/rW1/v3ajzna24/a/v39tWX924/9/rX9/tr9/v0hhXJqAAAAJHRSTlP//////////////////////////////////////////////wBYLA0NAAAACXBIWXMAAAsSAAALEgHS3X78AAAJjElEQVR4nO3di3LbuBlA4bW7jd2snLTyXqSNGl38/u9YkVbqRKIVUsRPAjjnm061bSYIN8ckCF2gX16E9MvcB6B5GB7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeakz4O+UsMPyI36too8PvHtufn398GTq0ZjU2/OF52T5uP3wdOLRmNTb8/vOXHx77D61ZecZDjZ7j90/O8SXyrh7K8FAplnP3K2/uMvPTJ2iS3NwdnheGz8rdy0//+tMs59YP34Xv+aSg4kwQ/rSc2/z60TM+HxOEPy7nFs3D5nI9Z/j5xM/xtw+tWRkeyvBQhocavZx7Oq3dvLkry+gzvnn25qahNavxl/r9p9VNQ2tWzvFQhocyPJThoQwPZXgow0MZHsrwUIaHMjyU4aEMD2V4KMNDGR7K8FCGhzI8lOGhDA9leCjDQxkeyvBQhocyPJThody2HMpNjKHcthzKMx7KbcuhvKuHMjyUyzkob+6gApZzblteAs94KJdzUN7VQxkeyvBQhody23Ioty2HcttyKOd4KMNDGR7K8FCGr5JfMco0xZcK3zy04vR4O4Tha+QZD+UZD+UZT+Vdvd5heCjDQxkeyvBQhocyPJThoQwPZXgow0MZHsrwEOcv2xie4eKFWsNPZOatYQw/kx5vjZj2zzf8NOYO7xw/k9nDnzP8RHLb/s3wUG5pCuUGh1B+QwWUZzyUW5pel9vNeDLe1V+V3fI7mYDwNW1bbvh3HZdzD5tqL/WGf8/h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" alt="plot of chunk unnamed-chunk-14"/> </p>
 
 </body>
 

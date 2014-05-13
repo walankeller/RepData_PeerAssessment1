@@ -26,4 +26,14 @@ if(exists("activitydata")){
   activitydata <- read.csv(fullfilename, header = TRUE)
 }
 
+print("add a datimetime variable as a POSIXt class which combines date and hours/minutes from interval")
+activitydata$datetime <- strptime(
+  paste(activitydata$date
+        ,sprintf("%04d",activitydata$interval)) #force interval to 4 digits
+  ,format="%Y-%m-%d %H%M")
 
+
+
+
+# "activitydata$new") <- activitydata(, date)
+# hpc_filtered <- hpc[as.character(hpc$date) %in% c('2/2/2007','1/2/2007'),]
