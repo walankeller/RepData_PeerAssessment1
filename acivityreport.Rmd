@@ -9,8 +9,8 @@ Loading and preprocessing the data
 ========================================================
 
 Show any code that is needed to
- 
 *(1)*  Load the data (i.e.  read.csv() )
+
 ```{r echo = TRUE}
 
 #opts_chunk$set(echo = TRUE, results = "show", cache = TRUE)
@@ -20,16 +20,19 @@ Show any code that is needed to
 internetSource <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 fullzipfilename <- file.path(getwd(), "activity.zip")
 fullfilename <- file.path(getwd(), "activity.csv")
-if (file.exists(fullzipfilename)){
-  #print("data previously downloaded and exists locally")
-}else{
+if (!file.exists(fullzipfilename)){
   #print("file not found locally, so dowload from website")
   download.file(internetSource 
                 , destfile=fullzipfilename)
+}else{
+  #print("data previously downloaded and exists locally")
 }
 
-#unzip contents to get single .csv file
-unzip(fullzipfilename)
+#unzip contents to get single .csv file, 
+# but only if unzipped .csv file doesn't already exist
+if (!file.exists(fullfilename)){
+  unzip(fullzipfilename)
+}
 
 #load data into R
 if(!exists("activity")){
@@ -43,14 +46,23 @@ str(activity)
 add a datimetime variable as a POSIXt class which combines date and hours/minutes from interval
 ```{r echo = TRUE}
 
+#note turning echo to false to remove large list when intervalmod is 
+# changed to a factor variable
+
+#pad new intervalmod variable with leading zeros so that it is consistantly HHMM (military hrs)
+factor(activity$intervalmod)
+activity$intervalmod <- sprintf("%04d",activity$interval)
+
 activity$datetime <- strptime(
-  paste(activity$date
-        ,sprintf("%04d",activity$interval)) #left pad to 4 digits
-  ,format="%Y-%m-%d %H%M")
+  paste(
+    activity$date
+    ,activity$intervalmod) 
+    ,format="%Y-%m-%d %H%M")
+
+#visualize activity object
 str(activity)
 ```
 
- 
 What is mean total number of steps taken per day?
 ========================================================
 
@@ -65,14 +77,20 @@ dmedian <- aggregate(steps ~ date, activity, median)
 
 AverageDailySteps <- davg$steps
 
-#head(davg)
-hist(AverageDailySteps, breaks=53, col="green", xlab="Day", ylab = "Average Steps"
-     ,axes = TRUE
+byday <- tapply(activity$steps,activity$date,sum )
+hist(byday, breaks=61
+     , col="green"
+     , xlab="Day"
+     , ylab = "Average Steps"
+     , axes = TRUE
      , plot = TRUE)
 ```
 
 *(2)*  Calculate and report the mean and median total number of steps taken per day
 ```{r echo = TRUE}
+#sum(byday, na.rm = TRUE)  #570608/53 (53 values witouh NAs)
+mean(byday, na.rm = TRUE)  #10766.19
+median(byday, na.rm = TRUE) #10765
 
 ```
 
@@ -81,7 +99,16 @@ What is the average daily activity pattern?
 ========================================================
 *(1)*  Make a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 ```{r echo = TRUE}
+byinterval <- tapply(activity$steps,activity$intervalmod,sum, na.rm = TRUE )
+hist(byintervalmod
+      , breaks=288
+     , col= "red"
+     , xlab= "Time Interval"
+     , ylab = "Average Steps"
+     , axes = TRUE
+     , plot = TRUE)
 
+# table(activity$intervalmod)
 
 ```
 
@@ -100,20 +127,50 @@ Note that there are a number of days/intervals where there are missing values (c
 *(1)*  Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with  NA s)
 ```{r echo = TRUE}
 
+sum(is.na(activity$steps)
+    |is.na(activity$date)
+    |is.na(activity$interval)
+    )
+
+# sum(!complete.cases(activity)) #errs w not all arguments have the same length but was able to get the correct result with is.na on al three origingal raw variables
+
 ```
 
 *(2)*  Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+Stategy: Replace NA values with the mean, rounded to the nearest whole number, for the the matching interval These values are place in a newly created stepsmod variable combined with the original non NA values.  
+
 ```{r echo = TRUE}
 
+#merge byinterval with stepsmod to replace NULL values in stepsmod
+#replaced with average steps for that timeinterval period rounded to the nearest whole numbers
+
+# avgbyinterval <- tapply(activity$steps,activity$interval,mean, na.rm = TRUE )
+
+#get interval means and put in a dataframe
+byinterval <- tapply(activity$steps,activity$intervalmod,mean, na.rm = TRUE )
+byinterval <- aggregate(activity$steps,list(activity$intervalmod), mean,na.rm = TRUE )
+colnames(byinterval)[1]<-"interval"
+colnames(byinterval)[2]<-"mean"
+
+#put interval mean in stepsmod where values are NA in steps. otherwise use actual steps 
+activity$stepsmod <-  ifelse(
+  is.na(activity$steps)
+  , round(byinterval$mean[match(activity$intervalmod, byinterval$intervalmod)], digits=0)
+  , activity$steps
+  )
 
 
 ```
 
 *(3)*  Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+New Datasetname: activitynew
 ```{r echo = TRUE}
 
-
-
+activitynew <- activity[,c(6,2,3)]
+colnames(activitynew)[1] <- "steps" #rename stepsmod back to steps
+str(activitynew)  #visualize that it worked
 ```
 
 *(4)*  Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
