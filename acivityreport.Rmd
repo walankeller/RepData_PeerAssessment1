@@ -10,9 +10,11 @@ Loading and preprocessing the data
 
 Show any code that is needed to
  
-1. Load the data (i.e.  read.csv() )
-```{r}
-echo = TRUE
+*(1)*  Load the data (i.e.  read.csv() )
+```{r echo = TRUE}
+
+#opts_chunk$set(echo = TRUE, results = "show", cache = TRUE)
+
 #Download the Activity data if it doesn't already exist
 #setwd("C://Users//akeller.HARDEN//Documents//GitHub//RepData_PeerAssessment2")
 internetSource <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
@@ -30,25 +32,22 @@ if (file.exists(fullzipfilename)){
 unzip(fullzipfilename)
 
 #load data into R
-if(exists("activitydata")){
-  #print("activity data was previously loaded into R.")
-}else{
-  #print("load activitydata")
-  activitydata <- read.csv(fullfilename, header = TRUE)
-}
-str(activitydata)
+if(!exists("activity")){
+  activity <- read.csv(fullfilename, header = TRUE)
+} else {print("activity already loaded")}
+str(activity)
 ```
 
-2. Process/transform the data (if necessary) into a format suitable for your analysis
-```{r}
-echo = TRUE
-print("add a datimetime variable as a POSIXt class which combines date and hours/minutes from interval")
-activitydata$datetime <- strptime(
-  paste(activitydata$date
-        ,sprintf("%04d",activitydata$interval)) #force interval to 4 digits
+*(2)*  Process/transform the data (if necessary) into a format suitable for your analysis.
+
+add a datimetime variable as a POSIXt class which combines date and hours/minutes from interval
+```{r echo = TRUE}
+
+activity$datetime <- strptime(
+  paste(activity$date
+        ,sprintf("%04d",activity$interval)) #left pad to 4 digits
   ,format="%Y-%m-%d %H%M")
-print("create a daytype variable and default to weekday. This is needed later and we will update the weekend values at that point")
-activitydata$daytype <- "weekday"
+str(activity)
 ```
 
  
@@ -56,33 +55,40 @@ What is mean total number of steps taken per day?
 ========================================================
 
 For this part of the assignment, you can ignore the missing values in the dataset.
-1. Make a histogram of the total number of steps taken each day
-```{r}
-echo = TRUE
-print("coding in process")
+*(1)*  Make a histogram of the total number of steps taken each day
+```{r echo = TRUE}
+
+#Daily Average (53 days => missing 8 days)
+davg <- aggregate(steps ~ date, activity, mean) #this is average per interval/ need daily average
+dmedian <- aggregate(steps ~ date, activity, median)
+#daily <- cbind(davg, dmedian)
+
+AverageDailySteps <- davg$steps
+
+#head(davg)
+hist(AverageDailySteps, breaks=53, col="green", xlab="Day", ylab = "Average Steps"
+     ,axes = TRUE
+     , plot = TRUE)
 ```
 
-2. Calculate and report the mean and median total number of steps taken per day
-```{r}
-echo = TRUE
-print("coding in process")
+*(2)*  Calculate and report the mean and median total number of steps taken per day
+```{r echo = TRUE}
+
 ```
 
  
 What is the average daily activity pattern?
 ========================================================
-1. Make a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r}
-echo = TRUE
-print("coding in process")
+*(1)*  Make a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+```{r echo = TRUE}
+
 
 ```
 
-2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
-echo = TRUE
-print("coding in process")
+*(2)*  Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r echo = TRUE}
 
+plot(davg, ylab="yyyy", xlab = "xxxxx", main = "mainnnn")
 ```
 
  
@@ -90,31 +96,30 @@ Imputing missing values
 ========================================================
 
 Note that there are a number of days/intervals where there are missing values (coded as  NA ). The presence of missing days may introduce bias into some calculations or summaries of the data.
-1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with  NA s)
-```{r}
-echo = TRUE
-print("coding in process")
+
+*(1)*  Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with  NA s)
+```{r echo = TRUE}
 
 ```
 
-2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
-```{r}
-echo = TRUE
-print("coding in process")
+*(2)*  Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+```{r echo = TRUE}
+
+
 
 ```
 
-3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
-```{r}
-echo = TRUE
-print("coding in process")
+*(3)*  Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r echo = TRUE}
+
+
 
 ```
 
-4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
-```{r}
-echo = TRUE
-print("coding in process")
+*(4)*  Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+```{r echo = TRUE}
+
+
 
 ```
 
@@ -123,16 +128,36 @@ Are there differences in activity patterns between weekdays and weekends?
 ========================================================
 
 For this part the  weekdays()  function may be of some help here. Use the dataset with the filled-in missing values for this part.
-1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
-```{r}
-echo = TRUE
-print("coding in process")
+*(1)*  Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+```{r echo = TRUE}
+
+
+
+# activity$daytype <- ""
+# factor(activity$daytype)
+activity$daytype <- factor(ifelse (
+  weekdays(activity[,"datetime"])=="Saturday"   #if Saturday or Sunday
+  | weekdays(activity[,"datetime"])=="Sunday"
+  , "Weekend"               #then Weekend
+  ,"Weekday"))
+
+#factor(activity$daytype)
+# activity <- cbind(activity,dt)
+table(activity$daytype)
+
+
+# echo = FALSE #no need to see listing of all of the daytype values
+# factor(activity$daytype)
+# echo = TRUE
+
+#table(activity$daytype)
+
+
 
 ```
 
-2. Make a panel plot containing a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
-```{r}
-echo = TRUE
-print("coding in process")
+*(2)* Panel plot containing a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
+```{r echo = TRUE}
+
 
 ```
