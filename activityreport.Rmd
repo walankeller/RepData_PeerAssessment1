@@ -1,16 +1,33 @@
-Personal Activity Monitorring Report, single device from October-November 2012
-========================================================
+# Reproducible Research: Peer Assessment 1
+
+# Personal Activity Monitorring Report 
 
 This Knitted report is for the Reproducible Research class Homework Assignment #1. This report is an analysis of Peronal Activity
 of the number of steps collected over five minute intervals from a single device/person over a two month period from October through
 November of 2012.
 
-Loading and preprocessing the data
-========================================================
+The report will specifically address/include the following:
 
-Show any code that is needed to: 
-*(1)*  Load the data (i.e.  read.csv() ), and
-*(2)*  Process/transform the data (if necessary) into a format suitable for your analysis.
+Req1) Show code for reading in the dataset and/or processing the data? 
+
+Req2) contain a histogram of the total number of steps taken each day? 
+
+Req 3)Include the mean and median number of steps taken each day reported?
+
+Req 4) Incldue a time series plot of the average number of steps taken (averaged across all days) versus the 5-minute intervals?
+
+Req 5) Give the 5-minute interval that, on average, contains the maximum number of steps?
+
+Req 6) Describe and show with code a strategy for imputing missing data?
+
+Req 7) Does the report contain a histogram of the total number of steps taken each day after missing values were imputed?
+
+Req 8) Contain a panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends?
+
+Req 9) Show all of the R code needed to reproduce the results (numbers, plots, etc.) in the report?
+
+
+## A) Loading and preprocessing the data
 
 ```{r echo = TRUE}
 
@@ -111,11 +128,10 @@ activity$daytype <- factor(ifelse (
 ```
 
 
-A. What is mean total number of steps taken per day?
-========================================================
+## B) What is mean total number of steps taken per day?
 
-For this part of the assignment, you can ignore the missing values in the dataset.
-*(A1)*  Make a histogram of the total number of steps taken each day
+For now, missing values are ignored in the dataset.
+*(A1)*  Histogram of the total number of steps taken each day
 ```{r echo = TRUE}
 
 # hist(byday$steps, breaks=61
@@ -132,15 +148,14 @@ ggplot(byday, aes(x = day, y = steps)) + geom_bar(stat = "identity")
 
 ```
 
-*(A2)*  Calculate and report the mean and median total number of steps taken per day
-The mean number of steps per day is `r format(davg, digits = 2, big.mark = ",", decimal.mark = ".")`
+*(A2)*  The mean number of steps per day is `r format(davg, digits = 2, big.mark = ",", decimal.mark = ".")`
 and the median number of steps per day is `r format(dmed, digits = 2, big.mark = ",", decimal.mark = ".")`
  
-B. What is the average daily activity pattern?
-========================================================
-*(B1)*  Make a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+## C) What is the average daily activity pattern?
 
-*(B2)*  Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+*(C1)*  Time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+*(C2)*  Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 ```{r echo = TRUE}
 plot(davg, ylab="yyyy", xlab = "xxxxx", main = "mainnnn")
 
@@ -149,26 +164,20 @@ ggplot(byinterval, aes(x = interval, y = steps)) + geom_line()
 ```
 
  
-C. Imputing missing values
-========================================================
+## D. Imputing missing values
 
-Note that there are a number of days/intervals where there are missing values (coded as  NA ). The presence of missing days may introduce bias into some calculations or summaries of the data.
+Note that there are a number of days/intervals where there are missing values (coded as  NA ). The presence of missing days introduces bias into some calculations or summaries of the data.
 
-*(C1)*  Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with  NA s).
-Missing values total to `r nMissingCount`
-```{r echo = TRUE}
+*(D1)*  The total number of missing values in the dataset (i.e. the total number of rows including NA s) is `r nMissingCount`
 
+*(D2)*  
 
-```
+NA Replacement Stategy: I have replaced NA values with the mean of the matching tiem interval rounded to the nearest whole number. These values are placed in a newly created "stepsmod" variable combined with the originally provided  non-NA values.  
 
-*(C2)*  Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+*(D3)*  Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-Stategy: Replace NA values with the mean, rounded to the nearest whole number, for the the matching interval These values are place in a newly created stepsmod variable combined with the original non NA values.  
+The new dataset name is called activitynew
 
-
-*(C3)*  Create a new dataset that is equal to the original dataset but with the missing data filled in.
-
-New Datasetname: activitynew
 Here are structures of the orignal and copied objects.
 
 ```{r echo = TRUE}
@@ -176,7 +185,7 @@ str(activityorig)  #visualize that original object
 str(activitynew)  #is the same as new object witouth the NAs
 ```
 
-*(C4)*  Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+*(D4)*  Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 ```{r echo = TRUE}
 
 # hist(byday$steps, breaks=61
@@ -204,12 +213,10 @@ ggplot(byday, aes(x = day, y = steps)) + geom_bar(stat = "identity")
 
 ```
 
- 
-D. Are there differences in activity patterns between weekdays and weekends?
-========================================================
+## E) Are there differences in activity patterns between weekdays and weekends?
 
 For this part the  weekdays()  function may be of some help here. Use the dataset with the filled-in missing values for this part.
-*(D1)*  Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+*(E1)*  Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 ```{r echo = TRUE}
 
 
@@ -218,7 +225,7 @@ For this part the  weekdays()  function may be of some help here. Use the datase
 
 ```
 
-*(D2)* Panel plot containing a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
+*(E2)* Panel plot containing a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
 ```{r echo = TRUE}
 
 #ggplot(byinterval, aes(x = interval, y = steps)) + geom_line() + 
