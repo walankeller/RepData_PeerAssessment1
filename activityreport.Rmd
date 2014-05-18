@@ -36,15 +36,13 @@ if (!file.exists(fullfilename)){
 
 #load data into R
 if(!exists("activity")){
-  activity <- read.csv(fullfilename, header = TRUE)
+  activity <- read.csv(fullfilename, header = TRUE, colClasses = c("numeric", "Date", "numeric"))
+  #dataset <- read.csv(datasetPath, colClasses = c("numeric", "Date", "numeric"))
 } else {print("activity already loaded")}
 
 activityorig <- activity  #copy off original to later compare to newly copied object
 
-#make intervalmod a factor variable
-factor(activity$intervalmod)
-#pad new intervalmod variable with leading zeros so that it is consistantly HHMM (military hrs)
-activity$intervalmod <- sprintf("%04d",activity$interval)
+#cut
 
 # add a datimetime variable as a POSIXt class which combines date and hour/minutes from interval
 activity$datetime <- strptime(
@@ -55,7 +53,7 @@ activity$datetime <- strptime(
 
 #sum values by Day and by Interval
 byday <- tapply(activity$steps,activity$date,sum, na.rm = TRUE )
-byday <- aggregate(activity$steps,list(activity$date), sum,na.rm = TRUE )
+byday <- aggregate(activity$steps,list(activity$date), sum, na.rm = TRUE )
 colnames(byday)[1]<-"day"
 colnames(byday)[2]<-"steps"
 # summary(byday)
@@ -63,9 +61,13 @@ colnames(byday)[2]<-"steps"
 davg <- mean(byday$steps, na.rm=TRUE)
 dmed <- median(byday$steps, na.rm=TRUE)
 
+# davg  => 9354.23
+# dmed  => 10395
 
 byinterval <- tapply(activityorig$steps,activityorig$interval,sum, na.rm = TRUE )
 byinterval <- aggregate(activityorig$steps,list(activityorig$interval), sum,na.rm = TRUE )
+colnames(byinterval)[1]<-"interval"
+colnames(byinterval)[2]<-"steps"
 
 
 #byinterval <- tapply(activity$steps,activity$intervalmod,sum, na.rm = TRUE )
@@ -73,14 +75,24 @@ byinterval <- aggregate(activityorig$steps,list(activityorig$interval), sum,na.r
 #merge byinterval with stepsmod to replace NULL values in stepsmod
 #replaced with average steps for that timeinterval period rounded to the nearest whole numbers
 #get interval means and put in a dataframe
-colnames(byinterval)[1]<-"interval"
-colnames(byinterval)[2]<-"steps"
 
 #need to count number of missings. Used in output later
 nMissingCount <- sum(is.na(activity$steps)
     |is.na(activity$date)
     |is.na(activity$interval)
     )
+
+#nMissingCount  => 2304
+
+#ak question. do I need leading zeros here or not?
+#make intervalmod a factor variable
+factor(activity$intervalmod)
+#pad new intervalmod variable with leading zeros so that it is consistantly HHMM (military hrs)
+activity$intervalmod <- sprintf("%04d",activity$interval)
+
+byinterval$intervalmod <- byinterval$interval
+factor(byinterval$intervalmod)
+byinterval$intervalmod <- sprintf("%04d",byinterval$intervalmod)
 
 #put interval mean in stepsmod where values are NA in steps. otherwise use actual steps 
 activity$stepsmod <-  ifelse(
@@ -92,6 +104,7 @@ activity$stepsmod <-  ifelse(
 activitynew <- activity[,c(6,2,3)]
 colnames(activitynew)[1] <- "steps" #rename stepsmod back to steps
 
+#ak question: are the empty days overpopulating and should they be included?
 bydaynew <- tapply(activitynew$steps,activitynew$date,sum, na.rm = TRUE )
 bydaynew <- aggregate(activitynew$steps,list(activitynew$date), sum,na.rm = TRUE )
 colnames(bydaynew)[1]<-"day"
@@ -101,6 +114,9 @@ colnames(bydaynew)[2]<-"steps"
 davgnew <- mean(bydaynew$steps, na.rm=TRUE)
 dmednew <- median(bydaynew$steps, na.rm=TRUE)
 
+
+# davgnew  =>  84188.07
+# dmednew  =>  11458
 
 #AverageDailySteps <- davg$steps
 # activity$daytype <- ""
@@ -137,7 +153,9 @@ ggplot(byday, aes(x = day, y = steps)) + geom_bar(stat = "identity")
 
 *(B2)*  The mean number of steps per day is `r format(davg, digits = 2, big.mark = ",", decimal.mark = ".")`
 and the median number of steps per day is `r format(dmed, digits = 2, big.mark = ",", decimal.mark = ".")`
- 
+
+For later...................................
+
 ## C) What is the average daily activity pattern?
 
 *(C1)*  Time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
@@ -154,8 +172,9 @@ qplot(byinterval$interval, byinterval$steps, type = "l") + geom_line() +
 ```
 
 ```{r echo = TRUE}
-max_interval <- byinterval[byinterval$steps == max(byinterval$steps), byinterval$inteval] 
-#max_interval_steps <- byinterval[byinterval$steps == max(byinterval$steps), byinterval$steps] 
+max_interval <- byinterval[byinterval$steps == max(byinterval$steps), byinterval$interval] 
+# max(byinterval$steps)  => 10927
+
 ```
 
 *(C2)*  The 5-minute interval, on average across all the days in the dataset, containing the maximum number of steps? is: `r max_interval`.
@@ -178,11 +197,17 @@ The new dataset name is called activitynew.
 Here are structures of the orignal and copied objects.
 
 ```{r echo = TRUE}
+#str(activity)  #visualize that original object
 str(activityorig)  #visualize that original object
 str(activitynew)  #is the same as new object witout the NAs
 ```
 
 *(D4)*  Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+The new mean number of steps per day is `r format(davgnew, digits = 2, big.mark = ",", decimal.mark = ".")`
+and the new median number of steps per day is `r format(dmednew, digits = 2, big.mark = ",", decimal.mark = ".")`
+
+
 ```{r echo = TRUE}
 
 # hist(byday$steps, breaks=61
@@ -193,7 +218,8 @@ str(activitynew)  #is the same as new object witout the NAs
 #      , axes = TRUE
 #      , plot = TRUE)
 
-ggplot(byday, aes(x = day, y = steps)) + geom_bar(stat = "identity")
+#ggplot(byday, aes(x = day, y = steps)) + geom_bar(stat = "identity")
+ggplot(bydaynew, aes(x = day, y = steps)) + geom_bar(stat = "identity")
 
 # hist(activitynew$steps 
 #      , main="Total Number of Steps per Day with Missing Values Imputed"
@@ -226,6 +252,24 @@ For this part the  weekdays()  function may be of some help here. Use the datase
 
 #ggplot(byinterval, aes(x = interval, y = steps)) + geom_line() + 
 #    facet_wrap(~daytype, nrow = 2)
+
+#start 333 gold maybe
+library(plyr)
+weekdaysList <- weekdays(activity$date)
+weekdaysList[!(weekdaysList %in% c("Saturday", "Sunday"))] <- "weekday"
+weekdaysList[(weekdaysList %in% c("Saturday", "Sunday"))] <- "weekend"
+#datasetImputed$weekday <- as.factor(weekdaysList)
+
+# dailyStepsByWeekdayImputed <- ddply(datasetImputed, c("interval", "weekday"), 
+#     summarize, steps = mean(steps))
+# library(lattice)
+# xyplot(steps ~ interval | weekday, data = dailyStepsByWeekdayImputed, layout = c(1, 
+#     2), type = "l", xlab = "Interval", ylab = "Number of steps")
+
+#almost there. consider plotting aggregate
+library(lattice)
+xyplot(steps ~ interval | daytype, data = activity, layout = c(1, 
+    2), type = "l", xlab = "Interval", ylab = "Number of steps")
 
 ```
 
