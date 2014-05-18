@@ -1,7 +1,6 @@
 # Reproducible Research: Peer Assessment 1
 
 # Personal Activity Monitorring Report 
-
 This Knitted report is for the Reproducible Research class Homework Assignment #1. This report is an analysis of Peronal Activity
 of the number of steps collected over five minute intervals from a single device/person over a two month period from October through
 November of 2012.
@@ -144,9 +143,16 @@ bydaynew <- aggregate(activitynew$steps, list(activitynew$date), sum, na.rm = TR
 colnames(bydaynew)[1] <- "day"
 colnames(bydaynew)[2] <- "steps"
 
+# # make sure that if no steps are logged during a day that you don't impute
+# any steps #the following is a cludgey way of fixing the matching 0 to more
+# days # not clean but it does work. clean this up later bydaynew$steps <-
+# ifelse( (bydaynew$steps == 570608) , 0 , bydaynew$steps )
+
 # byday <- tapply(activity$steps, activity$date, sum)
 davgnew <- mean(bydaynew$steps, na.rm = TRUE)
 dmednew <- median(bydaynew$steps, na.rm = TRUE)
+
+
 
 
 # davgnew => 84188.07 dmednew => 11458
@@ -324,7 +330,6 @@ For this part the  weekdays()  function may be of some help here. Use the datase
 # ggplot(byinterval, aes(x = interval, y = steps)) + geom_line() +
 # facet_wrap(~daytype, nrow = 2)
 
-# start 333 gold maybe
 library(plyr)
 ```
 
@@ -333,17 +338,48 @@ library(plyr)
 ```
 
 ```r
-weekdaysList <- weekdays(activity$date)
-weekdaysList[!(weekdaysList %in% c("Saturday", "Sunday"))] <- "weekday"
-weekdaysList[(weekdaysList %in% c("Saturday", "Sunday"))] <- "weekend"
-# datasetImputed$weekday <- as.factor(weekdaysList)
+# weekdaysList <- weekdays(activity$date) weekdaysList[!(weekdaysList %in%
+# c('Saturday', 'Sunday'))] <- 'weekday' weekdaysList[(weekdaysList %in%
+# c('Saturday', 'Sunday'))] <- 'weekend'
 
-# dailyStepsByWeekdayImputed <- ddply(datasetImputed, c('interval',
-# 'weekday'), summarize, steps = mean(steps)) library(lattice) xyplot(steps
-# ~ interval | weekday, data = dailyStepsByWeekdayImputed, layout = c(1, 2),
-# type = 'l', xlab = 'Interval', ylab = 'Number of steps')
+str(byday)
+```
 
-# almost there. consider plotting aggregate
+```
+## 'data.frame':	61 obs. of  2 variables:
+##  $ day  : Date, format: "2012-10-01" "2012-10-02" ...
+##  $ steps: num  0 126 11352 12116 13294 ...
+```
+
+```r
+
+byday$daytype <- factor(ifelse(weekdays(byday[, "day"]) == "Saturday"  #if Saturday or Sunday
+ | weekdays(byday[, "day"]) == "Sunday", "Weekend"  #then Weekend
+, "Weekday"))
+
+
+
+datasetImputed$weekday <- as.factor(weekdaysList)
+```
+
+```
+## Error: object 'weekdaysList' not found
+```
+
+```r
+dailyStepsByWeekdayImputed <- ddply(datasetImputed, c("interval", "weekday"), 
+    summarize, steps = mean(steps))
+```
+
+```
+## Error: object 'datasetImputed' not found
+```
+
+```r
+
+# xyplot(steps ~ interval | weekday, data = activity, layout = c(1, 2), type
+# = 'l', xlab = 'Interval', ylab = 'Number of steps')
+
 library(lattice)
 ```
 
@@ -352,12 +388,15 @@ library(lattice)
 ```
 
 ```r
-xyplot(steps ~ interval | daytype, data = activity, layout = c(1, 2), type = "l", 
-    xlab = "Interval", ylab = "Number of steps")
+
+xyplot(steps ~ day | daytype, data = byday, layout = c(1, 2), type = "l", xlab = "interval", 
+    ylab = "steps")
 ```
 
-```
-## Error: need at least one panel
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
+
+```r
+
 ```
 
 
