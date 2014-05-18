@@ -6,29 +6,8 @@ This Knitted report is for the Reproducible Research class Homework Assignment #
 of the number of steps collected over five minute intervals from a single device/person over a two month period from October through
 November of 2012.
 
-The report will specifically address/include the following:
-
-Req1) Show code for reading in the dataset and/or processing the data? 
-
-Req2) contain a histogram of the total number of steps taken each day? 
-
-Req 3)Include the mean and median number of steps taken each day reported?
-
-Req 4) Incldue a time series plot of the average number of steps taken (averaged across all days) versus the 5-minute intervals?
-
-Req 5) Give the 5-minute interval that, on average, contains the maximum number of steps?
-
-Req 6) Describe and show with code a strategy for imputing missing data?
-
-Req 7) Does the report contain a histogram of the total number of steps taken each day after missing values were imputed?
-
-Req 8) Contain a panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends?
-
-Req 9) Show all of the R code needed to reproduce the results (numbers, plots, etc.) in the report?
-
-
 ## A) Loading and preprocessing the data
-
+Please note that most all of the data processing used to genterate the figures is done in this section. This leaves just the generation of the figures for later in the code.
 ```{r echo = TRUE}
 
 #opts_chunk$set(echo = TRUE, results = "show", cache = TRUE)
@@ -38,16 +17,19 @@ Req 9) Show all of the R code needed to reproduce the results (numbers, plots, e
 internetSource <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 fullzipfilename <- file.path(getwd(), "activity.zip")
 fullfilename <- file.path(getwd(), "activity.csv")
-if (!file.exists(fullzipfilename)){
-  #print("file not found locally, so dowload from website")
-  download.file(internetSource 
-                , destfile=fullzipfilename)
-}else{
-  #print("data previously downloaded and exists locally")
-}
+
+## note: the following code has been commented out as is not working when Knitting, however, it can be used (uncommented) to run direct from the console in order to download the zip file from the internet
+# if (!file.exists(fullzipfilename)){
+#   #print("file not found locally, so dowload from website")
+#   download.file(internetSource 
+#                 , destfile=fullzipfilename)
+# }else{
+#   #print("data previously downloaded and exists locally")
+# }
 
 #unzip contents to get single .csv file, 
 # but only if unzipped .csv file doesn't already exist
+# assumes activity.zip is in Working Directory
 if (!file.exists(fullfilename)){
   unzip(fullzipfilename)
 }
@@ -59,8 +41,9 @@ if(!exists("activity")){
 
 activityorig <- activity  #copy off original to later compare to newly copied object
 
-#pad new intervalmod variable with leading zeros so that it is consistantly HHMM (military hrs)
+#make intervalmod a factor variable
 factor(activity$intervalmod)
+#pad new intervalmod variable with leading zeros so that it is consistantly HHMM (military hrs)
 activity$intervalmod <- sprintf("%04d",activity$interval)
 
 # add a datimetime variable as a POSIXt class which combines date and hour/minutes from interval
@@ -81,9 +64,12 @@ davg <- mean(byday$steps, na.rm=TRUE)
 dmed <- median(byday$steps, na.rm=TRUE)
 
 
+byinterval <- tapply(activityorig$steps,activityorig$interval,sum, na.rm = TRUE )
+byinterval <- aggregate(activityorig$steps,list(activityorig$interval), sum,na.rm = TRUE )
 
-byinterval <- tapply(activity$steps,activity$intervalmod,sum, na.rm = TRUE )
-byinterval <- aggregate(activity$steps,list(activity$intervalmod), sum,na.rm = TRUE )
+
+#byinterval <- tapply(activity$steps,activity$intervalmod,sum, na.rm = TRUE )
+#byinterval <- aggregate(activity$steps,list(activity$intervalmod), sum,na.rm = TRUE )
 #merge byinterval with stepsmod to replace NULL values in stepsmod
 #replaced with average steps for that timeinterval period rounded to the nearest whole numbers
 #get interval means and put in a dataframe
@@ -125,13 +111,14 @@ activity$daytype <- factor(ifelse (
   , "Weekend"               #then Weekend
   ,"Weekday"))
 
+
 ```
 
 
 ## B) What is mean total number of steps taken per day?
 
 For now, missing values are ignored in the dataset.
-*(A1)*  Histogram of the total number of steps taken each day
+*(B1)*  Here is a histogram of the total number of steps taken each day
 ```{r echo = TRUE}
 
 # hist(byday$steps, breaks=61
@@ -148,20 +135,30 @@ ggplot(byday, aes(x = day, y = steps)) + geom_bar(stat = "identity")
 
 ```
 
-*(A2)*  The mean number of steps per day is `r format(davg, digits = 2, big.mark = ",", decimal.mark = ".")`
+*(B2)*  The mean number of steps per day is `r format(davg, digits = 2, big.mark = ",", decimal.mark = ".")`
 and the median number of steps per day is `r format(dmed, digits = 2, big.mark = ",", decimal.mark = ".")`
  
 ## C) What is the average daily activity pattern?
 
 *(C1)*  Time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-
-*(C2)*  Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 ```{r echo = TRUE}
-plot(davg, ylab="yyyy", xlab = "xxxxx", main = "mainnnn")
 
-ggplot(byinterval, aes(x = interval, y = steps)) + geom_line()
+library(ggplot2)
+qplot(byinterval$interval, byinterval$steps, type = "l") + geom_line() + 
+    labs(x = "5-min Intervals", y = "Average steps/interval") + theme_bw()
+
+# plot(davg, ylab="yyyy", xlab = "xxxxx", main = "mainnnn")
+# 
+# ggplot(byinterval, aes(x = interval, y = steps)) + geom_line()
 
 ```
+
+```{r echo = TRUE}
+max_interval <- byinterval[byinterval$steps == max(byinterval$steps), byinterval$inteval] 
+#max_interval_steps <- byinterval[byinterval$steps == max(byinterval$steps), byinterval$steps] 
+```
+
+*(C2)*  The 5-minute interval, on average across all the days in the dataset, containing the maximum number of steps? is: `r max_interval`.
 
  
 ## D. Imputing missing values
@@ -176,13 +173,13 @@ NA Replacement Stategy: I have replaced NA values with the mean of the matching 
 
 *(D3)*  Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-The new dataset name is called activitynew
+The new dataset name is called activitynew.
 
 Here are structures of the orignal and copied objects.
 
 ```{r echo = TRUE}
 str(activityorig)  #visualize that original object
-str(activitynew)  #is the same as new object witouth the NAs
+str(activitynew)  #is the same as new object witout the NAs
 ```
 
 *(D4)*  Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
@@ -224,7 +221,6 @@ For this part the  weekdays()  function may be of some help here. Use the datase
 
 
 ```
-
 *(E2)* Panel plot containing a time series plot (i.e.  type = "l" ) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
 ```{r echo = TRUE}
 
